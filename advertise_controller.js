@@ -33,14 +33,15 @@ const google_map = async(req, res) => {
     return new Promise((resolve, reject) => {
         //const data = JSON.parse(fs.readFileSync("csvjson.json"));
         //console.log(`Getting address for ${lat}, ${lng}...`);
-        axios.get(`https: //maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452&key="AIzaSyCqQHPCt5EYtHklVMR8sC0CkzWMCnPdSUA"`)
+        const { lat1, lng1 } = req.query
+        axios.get(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat1},${lng1}&key="AIzaSyBDQhGZmQRu_SYO9YithPAuA2z6kQS1Sec"`)
             .then(response => {
-                console.log(response.data)
-                return resolve(response.data)
+                console.log(response)
+                return res.send(response)
             })
             .catch(error => {
-                console.log(error.message)
-                return reject(error.message)
+                console.log(error)
+                return res.send(error)
             })
     })
 }
@@ -171,20 +172,22 @@ const search_api = async(req, res) => {
                     obj3.total_ads_count = count_ads_sub
                 lst3.push(obj3)
             }
-            console.log(lst3)
+            //console.log(lst3)
             obj1.child = lst3
             datacat.push(obj1)
         }
 
         if (!category1) {
-            const main_cat1 = await Category.find({ parent_Id: null })
-            for (var xyz in main_cat1) {
-                const sub_cat1 = await Category.find({ parent_Id: main_cat1[xyz]._id })
-                lstdata.push(sub_cat1)
+
+            const datafil = await Category.find({}, "_id")
+            const childfil = await Category.find({ parent_Id: datafil }, "_id")
+            for (var abcd in childfil) {
+                lstdata.push(childfil[abcd]._id)
             }
 
             // const sub_cat1 = await Category.find({ parent_Id: category1 })
 
+            const main_cat1 = await Category.find({ parent_Id: null })
             let lst3 = []
             let lst4 = []
             let lst6 = []
@@ -270,13 +273,14 @@ const search_api = async(req, res) => {
                 let response = res.statusCode;
                 let message = "These Advertise"
                 let status1 = true;
-                return res.status(200).send({ page: page, size: size, SubCategory_Count: subcat_count, Total_ADS: lengthdata, response: response, city: citylst2, maximum_price: gpr, message: message, status: status1, category: datacat, data: data_final1 })
+                return res.status(200).send({ page: page, size: size, Total_ADS: lengthdata, response: response, city: citylst2, maximum_price: gpr, message: message, status: status1, category: datacat, data: data_final1 })
             }
             helperfunction()
         }
 
         //If Price is not Given
         else if (!g_price1 && !l_price1) {
+            console.log(lstdata)
             let pr1 = await advertise.find({}, "price")
             for (var abcd in pr1) {
                 price3.push(pr1[abcd].price)
